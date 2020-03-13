@@ -7,6 +7,21 @@ class Api::V1::TweetsController < ApplicationController
   end
 
   def follow_and_unfollow
+    follow_user = User.find_by_email(params[:follower][:email])
+    if params[:follow] == "no" 
+      @user.followed_relationships.find_by(followed_id: other_user.id).destroy
+    else params[:follow] == "yes"
+      if @user.following.include?(follow_user)
+        render json: {msg: "Already following the user", code: 200}
+      else
+        if follow_user.present?
+          Relationship.create(follower_id: @user.try(:id), followed_id: follow_user.id)
+          render json: {user: @user.email, follower: follow_user.email}
+        else
+          render json: {alert: "User not found", code: 200}
+        end
+      end
+    end
     
   end
 
@@ -16,7 +31,7 @@ class Api::V1::TweetsController < ApplicationController
     if @follower_tweets.present?
       render json: {user: @user.email, tweets: @follower_tweets, code: 200}
     else
-      render json: {error: "follower doesn't have tweets yet", code: 200}
+      render json: {error: "follower don't have tweets yet", code: 200}
     end
   end
 
