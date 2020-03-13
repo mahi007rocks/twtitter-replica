@@ -2,7 +2,8 @@ class Api::V1::TweetsController < ApplicationController
   before_action :find_user
   
   def index
-     render json: {tweets: user.tweets.order("created_at DESC"), code: 200}
+     tweets = @user.tweets
+     render json: {user: @user.email , tweets_count: tweets.count ,tweets: tweets.order("created_at DESC"), code: 200}
   end
 
   def follow_and_unfollow
@@ -13,7 +14,7 @@ class Api::V1::TweetsController < ApplicationController
     @follower = @user.followers.where(email: params[:follower_email]).first
     @follower_tweets = @follower.try(:tweets).order("created_at DESC")
     if @follower_tweets.present?
-      render json: {tweets: @follower_tweets, code: 200}
+      render json: {user: @user.email, tweets: @follower_tweets, code: 200}
     else
       render json: {error: "follower doesn't have tweets yet", code: 200}
     end
@@ -22,11 +23,11 @@ class Api::V1::TweetsController < ApplicationController
   def profile
     followers = @user.followers
     following = @user.following
-    render json: {user: @user,email, followers: @followers, following: @following, code: 200} 
+    render json: {user: @user.email, followers: followers, following: following, code: 200} 
   end
 
   def find_user
-    @user = User.find(params[:email])
+    @user = User.find_by_email(params[:email])
     render json: {error: "User not found", code: 404} if @user.nil?
   end
 end
